@@ -1,0 +1,8 @@
+#Ansible async 
+- 
+  name: Asynchronous Action
+  hosts: 192.168.0.4
+  tasks:
+      - command: sleep 2m
+        async: 120
+        poll: 5

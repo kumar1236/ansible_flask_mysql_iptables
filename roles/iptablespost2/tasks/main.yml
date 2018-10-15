@@ -1,0 +1,113 @@
+
+- name: Setting Iptables Facts (iptablespost2)
+  set_fact:
+    iptablesDynamic: "{{ iptablesDynamic + iptablesDynamicRole }}"
+    iptablesStatic: "{{ iptablesStatic + iptablesStaticRole }}"
+    ip6tablesDynamic: "{{ ip6tablesDynamic + ip6tablesDynamicRole }}"
+    ip6tablesStatic: "{{ ip6tablesStatic + ip6tablesStaticRole }}"
+    iptables_path: "/root/iptables/"
+  tags:
+    - iptables
+
+#- debug:
+#    var: iptablesDynamic
+#  tags:
+#    - iptables
+#  run_once: true
+
+- name: install iptables-utils on centos7
+  yum:
+    name: iptables-services
+    state: installed
+  when: (ansible_distribution == "CentOS" and ansible_distribution_major_version == "7")
+  tags:
+    - iptables
+
+- name: create ip4tables file for {{iptables_group}}
+  local_action: template src=iptables.j2 dest={{iptables_path}}ip4tables.{{iptables_group}}
+#  when: iptablesRoleHasRun == true and gen_iptables is defined and gen_iptables == true 
+  when: iptablesRoleHasRun == true
+  tags:
+    - iptables
+  run_once: true
+  always_run: yes
+
+- name: create ip6tables file for {{iptables_group}}
+  local_action: template src=ip6tables.j2 dest={{iptables_path}}ip6tables.{{iptables_group}}
+#  when: iptablesRoleHasRun == true and gen_iptables is defined and gen_iptables == true 
+  when: iptablesRoleHasRun == true
+  tags:
+    - iptables
+  run_once: true
+  always_run: yes
+
+- name: copy ip4tables
+  copy:
+    src: "{{iptables_path}}ip4tables.{{iptables_group}}"
+    dest: /etc/sysconfig/iptables
+    owner: root
+    group: root
+    mode: 0600
+  when: iptablesRoleHasRun == true
+  tags:
+    - iptables
+  notify: restartIptables
+
+- name: copy ip6tables
+  copy:
+    src: "{{iptables_path}}ip6tables.{{iptables_group}}"
+    dest: /etc/sysconfig/ip6tables
+    owner: root
+    group: root
+    mode: 0600
+  when: iptablesRoleHasRun == true
+  tags:
+    - iptables
+  notify: restartIp6tables
+
+- name: Enable Iptables
+  service:
+    name: iptables
+    enabled: yes
+  when: iptablesRoleHasRun == true
+  tags:
+    - iptables
+
+- name: Enable Ip6tables
+  service:
+    name: ip6tables
+    enabled: yes
+  when: iptablesRoleHasRun == true
+  tags:
+    - iptables
+
+- name: Start Iptables
+  service:
+    name: iptables
+    state: started
+    enabled: yes
+  when: iptablesRoleHasRun == true
+  tags:
+    - iptables
+
+- name: Start Ip6tables
+  service:
+    name: ip6tables
+    state: started
+    enabled: yes
+  when: iptablesRoleHasRun == true
+  tags:
+    - iptables
+
+- name: add tuning to sysctl.conf
+  sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    ignoreerrors: yes
+  when: iptablesRoleHasRun == true
+  with_items:
+    - { name: net.netfilter.nf_conntrack_tcp_timeout_time_wait, value: 20 }
+    - { name: net.nf_conntrack_max, value: 262144 }
+  tags:
+    - iptables
+

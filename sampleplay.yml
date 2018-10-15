@@ -1,0 +1,32 @@
+#Sample playbook 
+-
+ hosts: all_servers
+ tasks:
+    - name: Executing Date
+      command: date
+      register: date
+   
+    - debug:
+         var: date.stdout_lines   
+
+    - name: Install VIM
+      yum:
+         name: vim
+         state: present
+
+- 
+ hosts: haproxy
+ tasks: 
+    - name: Install httpd
+      yum:
+         name: httpd
+         state: present
+
+    - name: Stopping httpd and disabling
+      systemd: 
+         name: httpd
+         state: stopped
+         enabled: no
+         masked: yes         
+   
+

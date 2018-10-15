@@ -1,0 +1,13 @@
+---
+- hosts: ox
+  remote_user: root
+  sudo: yes
+
+  pre_tasks:
+    - shell: echo 'Beginning to configure web server..'
+
+  roles:
+    - nginx
+
+  post_tasks:
+    - shell: echo 'Done configuring nginx web server...'

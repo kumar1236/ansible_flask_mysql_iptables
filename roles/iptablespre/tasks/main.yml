@@ -1,0 +1,9 @@
+- name: Setting Facts
+  set_fact: 
+    iptablesDynamic: "{{ iptablesDynamicRole }}"
+    iptablesStatic: "{{ iptablesStaticRole }}"
+    ip6tablesDynamic: "{{ ip6tablesDynamicRole }}"
+    ip6tablesStatic: "{{ ip6tablesStaticRole }}"
+  tags:
+    - iptables
+

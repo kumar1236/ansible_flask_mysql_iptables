@@ -1,0 +1,20 @@
+#Ansible Deployment Playbook
+#Iptables
+- hosts: all_servers
+#- hosts: all_oxapp:all_oxui:all_oxspc:all_haproxy
+  strategy: free
+  roles:
+      - iptablespre
+#
+#-
+- name: Deploy Web Application
+  hosts: all_servers
+  roles:
+     - python
+     - mysql
+     - flask_web
+
+- hosts: all_servers
+  user: root
+  roles:
+    - iptablespost2

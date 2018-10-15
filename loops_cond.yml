@@ -1,0 +1,19 @@
+#Sample yml for loops (with_items)
+
+- 
+ name: Install Packages
+ hosts: all_servers
+ tasks:
+    -
+      yum:
+         name: '{{ item }}' 
+         state: present
+      with_items:
+         - haproxy
+         - binutils
+         - sysstat
+      when: 
+          ansible_hostname == "haproxy"
+
+
+     

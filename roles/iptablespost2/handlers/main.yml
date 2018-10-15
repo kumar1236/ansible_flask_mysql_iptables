@@ -1,0 +1,7 @@
+
+- name: restartIptables
+  service: name=iptables state=reloaded
+
+- name: restartIp6tables
+  service: name=ip6tables state=reloaded
+

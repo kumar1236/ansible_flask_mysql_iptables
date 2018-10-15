@@ -1,0 +1,73 @@
+# This file is managed by ansible do not modify by hand
+# Manual customization of this file is not recommended.
+
+# Set DSCP CS2 iptables -t mangle -A OUTPUT  -j DSCP --set-dscp-class CS2
+*mangle
+:PREROUTING ACCEPT [0:0]
+:INPUT ACCEPT [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+:POSTROUTING ACCEPT [0:0]
+-A OUTPUT -j DSCP --set-dscp 0x10 
+COMMIT
+
+*filter
+:INPUT DROP [0:0]
+:FORWARD DROP [0:0]
+:OUTPUT DROP [0:0]
+
+#boilerplate
+-A OUTPUT -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT
+-A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+-A INPUT -i lo -m state --state NEW -j ACCEPT
+
+#allow ssh
+:SSHCHAIN - [0:0]
+-A INPUT -p tcp -m tcp --dport 22 -m state --state NEW -j SSHCHAIN
+{% for rule in iptables_ansible_hosts %}
+{{ rule }}
+{% endfor %}
+-A SSHCHAIN -s 192.168.0.0/32 -m comment --comment "All hosts" -j ACCEPT
+
+#allow icmp
+:ICMPCHAIN - [0:0]
+-A INPUT -p icmp -m icmp --icmp-type 8 -m state --state NEW -j ICMPCHAIN
+-A ICMPCHAIN -s 192.168.0.0/32 -j ACCEPT 
+
+# static rules
+{% for rule in iptablesStatic %}
+{{ rule }}
+{% endfor %}
+
+# dynamic rules
+{% set chaincount = 1 %}
+{% for rule in iptablesDynamic %}
+:CHAIN{{ chaincount }} - [0:0]
+{% if rule.protocol == 'icmp' %}
+{% for icmptype in rule.icmptypes %}
+-A INPUT -m state --state NEW -m {{ rule.protocol }} -p {{ rule.protocol }} --icmp-type {{ icmptype }} -j CHAIN{{ chaincount }}
+{% endfor %}
+{% for hostgroup in rule.sourceGroups %}
+{% for host in groups[hostgroup] %}
+-A CHAIN{{ chaincount }} -s {{ hostvars[host]['ansible_default_ipv4']['address'] }} -m comment --comment {{ hostgroup }} -j {{ rule.jump }}
+{% endfor %}
+{% endfor %}
+{% else %}
+{% for port in rule.ports %}
+-A INPUT -m state --state NEW -m {{ rule.protocol }} -p {{ rule.protocol }} --dport {{ port }} -j CHAIN{{ chaincount }}
+{% endfor %}
+{% for hostgroup in rule.sourceGroups %}
+{% for host in groups[hostgroup] %}
+-A CHAIN{{ chaincount }} -s {{ hostvars[host]['ansible_default_ipv4']['address'] }} -m comment --comment {{ hostgroup }} -j {{ rule.jump }}
+{% endfor %}
+{% endfor %}
+{% endif %}
+{% set chaincount = chaincount + 1 %}
+{% endfor %}
+
+#post rules
+-A INPUT -j LOG --log-level info --log-prefix "IPTABLES "
+-A INPUT -j ACCEPT
+
+COMMIT
+

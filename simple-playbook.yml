@@ -1,0 +1,46 @@
+---
+- hosts: ox
+  remote_user: root
+  tasks:
+
+  - name: Adding devops group
+    group: 
+      name: devops
+      state: present
+
+  - name: Adding devops user
+    user: 
+      name: devops
+      uid: 1001
+      group: devops
+      state: present
+
+  - name: Adding repo
+    yum:
+      name: http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm 
+      state: present
+
+  - name: Installing Htop utility
+    yum: 
+      name: htop
+      state: latest
+      update_cache: yes
+
+  - name: Adding nginx repo
+    yum_repository:
+      name: nginx repo
+      description: nginx repo
+      baseurl: http://nginx.org/packages/mainline/centos/6/x86_64/
+      state: present
+
+  - name: Install nginx and ensure it is latest
+    yum: 
+      name: nginx
+      state: latest
+  
+  - name: Start Nginx
+    service:
+      name: nginx
+      state: started   
+
+   

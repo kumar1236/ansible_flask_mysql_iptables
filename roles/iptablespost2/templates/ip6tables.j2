@@ -1,0 +1,41 @@
+# This file is managed by ansible do not modify by hand
+# Manual customization of this file is not recommended.
+*filter
+:INPUT DROP [0:0]
+:FORWARD DROP [0:0]
+:OUTPUT DROP [0:0]
+
+#boilerplate
+-A OUTPUT -j ACCEPT
+-A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+-A INPUT -i lo -j ACCEPT
+-A INPUT -p ipv6-icmp -m icmp6 --icmpv6-type 133 -j ACCEPT
+-A INPUT -p ipv6-icmp -m icmp6 --icmpv6-type 134 -j ACCEPT
+-A INPUT -p ipv6-icmp -m icmp6 --icmpv6-type 135 -j ACCEPT
+-A INPUT -p ipv6-icmp -m icmp6 --icmpv6-type 136 -j ACCEPT
+
+# static rules
+{% for rule in ip6tablesStatic %}
+{{ rule }}
+{% endfor %}
+
+# dynamic rules
+{% set chaincount = 1 %}
+{% for rule in ip6tablesDynamic %}
+:CHAIN{{ chaincount }} - [0:0]
+{% for port in rule.ports %}
+-A INPUT -m state --state NEW -m {{ rule.protocol }} -p {{ rule.protocol }} --dport {{ port }} -j CHAIN{{ chaincount }}
+{% endfor %}
+{% for hostgroup in rule.sourceGroups %}
+{% for host in groups[hostgroup] %}
+-A CHAIN{{ chaincount }} -s {{ hostvars[host]['ansible_default_ipv6']['address'] }}  -m comment --comment {{ hostgroup }} -j {{ rule.jump }}
+{% endfor %}
+{% endfor %}
+{% set chaincount = chaincount + 1 %}
+{% endfor %}
+
+#post rules
+-A INPUT -j LOG --log-level info --log-prefix "IP6TABLES "
+-A INPUT -j DROP
+
+COMMIT

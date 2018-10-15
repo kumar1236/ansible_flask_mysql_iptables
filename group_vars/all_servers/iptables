@@ -1,0 +1,15 @@
+iptables_group: all_servers.{{config_environment}}
+
+iptablesStaticRole:
+  - "-A INPUT -m state --state NEW -s 192.168.0.0/32 -p tcp --dport 22 -j ACCEPT"
+  - "-A INPUT -m state --state NEW -s 192.168.0.0/32 -p tcp --dport 2222 -j ACCEPT"
+
+iptablesDynamicRole:
+  - { protocol: "tcp", ports: [ 5000,80,8080,22,2222 ], jump: "ACCEPT", sourceGroups: ['all_servers'] }
+#  - { protocol: "udp", jump: "ACCEPT", sourceGroups: ['all_servers'] }
+  - { protocol: "icmp" , icmptypes: [ 8 ], jump: "ACCEPT", sourceGroups: ['all_servers'] }
+
+ip6tablesStaticRole: []
+
+ip6tablesDynamicRole: []
+

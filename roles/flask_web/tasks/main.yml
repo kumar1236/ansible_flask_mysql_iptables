@@ -1,0 +1,29 @@
+---
+# Setup facts for environment and Iptables
+#
+- name: setting iptables facts
+  set_fact:
+     iptablesDynamic: "{{ iptablesDynamic + iptablesDynamicRole }}"
+     iptablesStatic: "{{ iptablesStatic + iptablesStaticRole }}"
+     ip6tablesDynamic: "{{ ip6tablesDynamic + ip6tablesDynamicRole }}"
+     ip6tablesStatic: "{{ ip6tablesStatic + ip6tablesStaticRole }}"
+     iptablesRoleHasRun: true
+  tags:
+     - iptables
+                             
+# tasks file for flask_web
+- name: Install Python Flask dependencies
+  pip:
+      name: '{{ item }}'
+      state: present
+  with_items:
+      - flask   
+      - flask-mysql
+           
+- name: Copy web-server code
+  copy:
+      src: /ansible/app.py
+      dest: /opt/app.py
+
+- name: Run Web-server
+  shell: FLASK_APP=/opt/app.py nohup flask run --host=0.0.0.0 &

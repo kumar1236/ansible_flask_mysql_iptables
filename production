@@ -1,0 +1,33 @@
+<<<<<<< HEAD
+[all_haproxy]
+#haproxy
+
+[all_webservers]
+#oxapp1
+oxapp2
+
+[all_servers:children]
+all_haproxy
+all_webservers
+
+
+[production:children]
+all_haproxy
+all_webservers
+
+
+[production:vars]
+config_environment=production
+
+
+
+=======
+[ox]
+ox.email.centos.net
+
+[nonexisting]
+ox1.email.centos.net
+ox2.email.centos.net
+ox3.email.centos.net
+ox4.email.centos.net
+>>>>>>> 1f82ab190e5a6e2345bcab216907846989c1a00c

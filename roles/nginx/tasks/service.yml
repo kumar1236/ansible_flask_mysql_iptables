@@ -1,0 +1,10 @@
+- name: restart nginx
+  service:
+    name: nginx
+    state: restarted
+  notify:
+     Iptables allowing IP for nginx
+
+#- name: Iptables allowing IP for nginx
+#  command: iptables -I INPUT -p tcp --dport {{ nginx_port }} -j ACCEPT
+

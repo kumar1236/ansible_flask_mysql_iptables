@@ -1,0 +1,23 @@
+#Esential tasks to run on all hosts
+- name: Adding devops group
+  group:
+    name: devops
+    state: present
+
+- name: Adding devops user
+  user:
+    name: devops
+    uid: 1001
+    group: devops
+    state: present
+
+- name: Adding repo
+  yum:
+    name: http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+    state: present
+
+- name: Installing Htop utility
+  yum:
+    name: htop
+    state: latest
+    update_cache: yes

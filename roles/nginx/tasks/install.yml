@@ -1,0 +1,11 @@
+- name: Adding nginx repo
+  yum_repository:
+    name: nginx repo
+    description: nginx repo
+    baseurl: http://nginx.org/packages/mainline/centos/6/x86_64/
+    state: present
+
+- name: Install nginx and ensure it is latest
+  yum:
+    name: nginx
+    state: latest
