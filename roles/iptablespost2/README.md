@@ -5,7 +5,7 @@
 
 ### Prerequisites:
 * group_vars entries defining filename to be created
-  * example:  group_vars/all_oxapp:iptables_group: oxapp.{{config_environment}}
+  * example:  group_vars/all_env:iptables_group: env.{{config_environment}}
   * config_environment comes from inventory (e.g. production, qa_openstack)
   * above generates /root/iptables/ip4tables.oxapp.production and /root/iptables/ip6tables.oxapp.production for production
 
